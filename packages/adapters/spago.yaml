@@ -1,0 +1,10 @@
+package:
+  name: sa-adapters
+  dependencies:
+    - prelude
+    - aff
+    - effect
+    - either
+    - functions
+    - maybe
+    - nullable

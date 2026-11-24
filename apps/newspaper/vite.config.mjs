@@ -5,13 +5,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-// The live engine by default; set ENGINE_URL=http://localhost:8787 for a local `just serve` in scenario-engine.
-const engine = process.env.ENGINE_URL ?? "https://scenario.hxrts.com";
+// The paper's own backend (`just backend`), which reads the engine; BACKEND_URL names another.
+const backend = process.env.BACKEND_URL ?? `http://127.0.0.1:${process.env.PORT ?? 8790}`;
 
 export default defineConfig({
   root: here,
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@output": path.resolve(here, "../../output") } },
-  server: { port: 5180, proxy: { "/api": { target: engine, changeOrigin: true } } },
+  server: { port: 5180, proxy: { "/api": { target: backend, changeOrigin: true } } },
   build: { outDir: "dist", emptyOutDir: true },
 });

@@ -1,0 +1,32 @@
+package:
+  name: sa-handlers
+  dependencies:
+    - prelude
+    - aff
+    - arrays
+    - bifunctors
+    - control
+    - datetime
+    - exceptions
+    - foreign-object
+    - integers
+    - foldable-traversable
+    - parallel
+    - strings
+    - argonaut-codecs
+    - argonaut-core
+    - effect
+    - either
+    - maybe
+    - refs
+    - sa-edition
+    - sa-effects
+  test:
+    main: Test.Handlers.Main
+    dependencies:
+      - arrays
+      - run
+      - spec
+      - spec-node
+      - tuples
+      - foldable-traversable

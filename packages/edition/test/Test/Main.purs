@@ -3,8 +3,11 @@ module Test.Main where
 import Prelude
 
 import Data.Maybe (Maybe(..), maybe)
+import Edition.Brief (period)
 import Edition.Calendar (addMonths, issueDate)
 import Edition.FrontPage (Direction(..), direction, frontPage)
+import Data.Either (Either(..))
+import Edition.Issue (Issue(..), decodeIssue, encodeIssue)
 import Edition.Report (Report, playedThrough)
 import Effect (Effect)
 import Test.Spec (describe, it)
@@ -111,3 +114,11 @@ main = runSpecAndExitProcess [ consoleReporter ] do
       playedThrough { id: "r", round: 3, status: "running", paused: false, remaining: Nothing } `shouldEqual` 2
     it "a completed run has played its last round" do
       playedThrough { id: "r", round: 3, status: "completed", paused: false, remaining: Nothing } `shouldEqual` 3
+  describe "issue" do
+    it "reads back what the backend writes" do
+      let r = empty { round = 2, enacted = [ "tariff" ], prices = [ { exchange: "usd-rmb", price: "7.1", change: "+0.2" } ] }
+      let copy = [ { slot: 0, headline: "Washington imposes a tariff", summary: "The United States put a tariff into force." } ]
+      map (decodeIssue <<< encodeIssue) [ NoRun, Waiting "run-1", Printed "run-1" r Nothing, Printed "run-1" r (Just copy) ]
+        `shouldEqual` [ Right NoRun, Right (Waiting "run-1"), Right (Printed "run-1" r Nothing), Right (Printed "run-1" r (Just copy)) ]
+    it "a round's period in words" do
+      map period [ 1, 6, 12, 18, 24, 36 ] `shouldEqual` [ "a month", "six months", "a year", "eighteen months", "two years", "three years" ]

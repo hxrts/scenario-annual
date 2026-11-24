@@ -1,6 +1,45 @@
 {
   "workspace": {
     "packages": {
+      "sa-adapters": {
+        "path": "packages/adapters",
+        "core": {
+          "dependencies": [
+            "aff",
+            "effect",
+            "either",
+            "functions",
+            "maybe",
+            "nullable",
+            "prelude"
+          ]
+        },
+        "test": {
+          "dependencies": []
+        }
+      },
+      "sa-annual": {
+        "path": "apps/annual",
+        "core": {
+          "dependencies": [
+            "aff",
+            "datetime",
+            "effect",
+            "either",
+            "integers",
+            "maybe",
+            "prelude",
+            "run",
+            "sa-adapters",
+            "sa-effects",
+            "sa-handlers",
+            "tailrec"
+          ]
+        },
+        "test": {
+          "dependencies": []
+        }
+      },
       "sa-edition": {
         "path": "packages/edition",
         "core": {
@@ -9,7 +48,9 @@
             "argonaut-core",
             "arrays",
             "either",
+            "enums",
             "foldable-traversable",
+            "integers",
             "maybe",
             "numbers",
             "prelude",
@@ -22,6 +63,62 @@
             "effect",
             "spec",
             "spec-node"
+          ]
+        }
+      },
+      "sa-effects": {
+        "path": "packages/effects",
+        "core": {
+          "dependencies": [
+            "argonaut-core",
+            "arrays",
+            "either",
+            "maybe",
+            "prelude",
+            "run",
+            "sa-edition",
+            "strings",
+            "typelevel-prelude"
+          ]
+        },
+        "test": {
+          "dependencies": []
+        }
+      },
+      "sa-handlers": {
+        "path": "packages/handlers",
+        "core": {
+          "dependencies": [
+            "aff",
+            "argonaut-codecs",
+            "argonaut-core",
+            "arrays",
+            "bifunctors",
+            "control",
+            "datetime",
+            "effect",
+            "either",
+            "exceptions",
+            "foldable-traversable",
+            "foreign-object",
+            "integers",
+            "maybe",
+            "parallel",
+            "prelude",
+            "refs",
+            "sa-edition",
+            "sa-effects",
+            "strings"
+          ]
+        },
+        "test": {
+          "dependencies": [
+            "arrays",
+            "foldable-traversable",
+            "run",
+            "spec",
+            "spec-node",
+            "tuples"
           ]
         }
       },
@@ -43,6 +140,7 @@
             "react-basic",
             "react-basic-dom",
             "react-basic-hooks",
+            "refs",
             "sa-edition",
             "tailrec",
             "unsafe-coerce",
@@ -1753,6 +1851,28 @@
         "prelude"
       ]
     },
+    "run": {
+      "type": "registry",
+      "version": "5.0.0",
+      "integrity": "sha256-zGCyG7IamjYWypKMXTP9PFis2ShnoZJKZiu3SbXMc+M=",
+      "dependencies": [
+        "aff",
+        "control",
+        "effect",
+        "either",
+        "free",
+        "maybe",
+        "newtype",
+        "partial",
+        "prelude",
+        "tailrec",
+        "tuples",
+        "type-equality",
+        "typelevel-prelude",
+        "unsafe-coerce",
+        "variant"
+      ]
+    },
     "safe-coerce": {
       "type": "registry",
       "version": "2.0.1",
@@ -1948,6 +2068,22 @@
       "integrity": "sha256-ttSJTQUnK8AK2eGOsfRxLUJEDPL6pnmExjbiOqfwC6I=",
       "dependencies": [
         "prelude"
+      ]
+    },
+    "variant": {
+      "type": "registry",
+      "version": "8.0.0",
+      "integrity": "sha256-Ydrgl8liWEwYQOWW76PdZtg3vxKpoKgsnmFyTLgZkoU=",
+      "dependencies": [
+        "control",
+        "enums",
+        "foldable-traversable",
+        "lists",
+        "maybe",
+        "partial",
+        "prelude",
+        "type-equality",
+        "unsafe-coerce"
       ]
     },
     "web-dom": {

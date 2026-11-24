@@ -1,0 +1,15 @@
+package:
+  name: sa-annual
+  dependencies:
+    - prelude
+    - aff
+    - datetime
+    - effect
+    - either
+    - tailrec
+    - integers
+    - maybe
+    - run
+    - sa-adapters
+    - sa-effects
+    - sa-handlers

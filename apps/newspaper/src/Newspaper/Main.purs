@@ -1,4 +1,4 @@
--- | The newspaper: follows the engine's live run and prints the front page of the latest played round.
+-- | The newspaper: prints the front page of the issue its backend holds (the engine's live run, newest played round).
 module Newspaper.Main (main) where
 
 import Prelude
@@ -10,16 +10,18 @@ import Data.Array (null)
 import Data.String (toLower)
 import Edition.Calendar (Date, issueDate)
 import Edition.FrontPage (Direction(..), FrontPage, Story, Tick, frontPage)
-import Edition.Report (Report, playedThrough)
+import Edition.Brief (applyCopy)
+import Edition.Issue as Issue
 import Effect (Effect)
 import Control.Monad.Rec.Class (forever)
-import Effect.Aff (Aff, delay, launchAff_)
+import Effect.Aff (delay, launchAff_)
 import Effect.Class (liftEffect)
+import Effect.Ref as Ref
 import Effect.Exception (throw)
 import Newspaper.Client as Client
 import React.Basic.DOM as D
 import React.Basic.DOM.Client (createRoot, renderRoot)
-import React.Basic.Hooks (Component, JSX, component, useEffectOnce, useState', (/\))
+import React.Basic.Hooks (Component, JSX, component, useEffectOnce, useState, (/\))
 import React.Basic.Hooks as React
 import Web.DOM.NonElementParentNode (getElementById)
 import Web.HTML (window)
@@ -28,35 +30,35 @@ import Web.HTML.Window (document)
 
 data Edition = NoRun | Waiting String | Printed String FrontPage | Trouble String
 
+-- | The backend reads the engine once a minute, so reading the backend more often finds nothing new.
 pollMs :: Milliseconds
-pollMs = Milliseconds 3000.0
+pollMs = Milliseconds 60000.0
 
 mkPaper :: Component Unit
 mkPaper = component "Paper" \_ -> React.do
-  edition /\ setEdition <- useState' (Waiting "")
+  edition /\ setEdition <- useState (Waiting "")
   useEffectOnce do
+    -- the browser revalidates /api/edition against its cached copy (the backend tags it and asks for no-cache), so
+    -- an unchanged issue costs a bodyless 304; the page is rebuilt only when the issue differs from the last one
+    shown <- Ref.new Nothing
     launchAff_ $ forever do
-      next <- Client.live >>= case _ of
-        Left e -> pure (Trouble e)
-        Right Nothing -> pure NoRun
-        Right (Just l) -> latest l.id (playedThrough l + 1) <#> case _ of
-          Left e -> Trouble e
-          Right Nothing -> Waiting l.id
-          Right (Just r) -> Printed l.id (frontPage r)
-      liftEffect (setEdition next)
+      result <- Client.edition
+      last <- liftEffect (Ref.read shown)
+      case result of
+        Right issue | Just issue == last -> pure unit
+        Right issue -> liftEffect do
+          Ref.write (Just issue) shown
+          setEdition \_ -> case issue of
+            Issue.NoRun -> NoRun
+            Issue.Waiting run -> Waiting run
+            Issue.Printed run r copy -> Printed run (maybe identity applyCopy copy (frontPage r))
+        -- a backend that cannot be reached leaves a printed page standing
+        Left e -> liftEffect $ setEdition \page -> case page of
+          Printed _ _ -> page
+          _ -> Trouble e
       delay pollMs
     pure (pure unit)
   pure $ D.div { className: "paper", children: [ body edition ] }
-
--- | The newest played round's report at or below `round`. The live state's round can lag a round already played
--- | (an all-agent run reports the same round before and after it resolves), so the round itself is tried first and
--- | a 404 falls back to the one before.
-latest :: String -> Int -> Aff (Either String (Maybe Report))
-latest run round
-  | round < 1 = pure (Right Nothing)
-  | otherwise = Client.report run round >>= case _ of
-      Right Nothing -> latest run (round - 1)
-      found -> pure found
 
 -- | Today's date in the reader's browser, and a date written out in full ("Tuesday, 24 November 2026").
 foreign import today :: Date

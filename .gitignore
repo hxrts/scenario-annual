@@ -12,3 +12,6 @@ playwright-report/
 # fetched from the engine (`just contract`)
 /openapi/
 .spec-results
+
+# the backend's record of rounds given to the writer, and pi's raw event streams
+/runs/

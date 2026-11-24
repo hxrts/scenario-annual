@@ -10,6 +10,8 @@ package:
     - maybe
     - strings
     - numbers
+    - integers
+    - enums
   test:
     main: Test.Main
     dependencies:

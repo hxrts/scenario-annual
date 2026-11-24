@@ -1,0 +1,12 @@
+package:
+  name: sa-effects
+  dependencies:
+    - prelude
+    - argonaut-core
+    - arrays
+    - strings
+    - either
+    - maybe
+    - run
+    - typelevel-prelude
+    - sa-edition

@@ -15,6 +15,7 @@ package:
     - fetch
     - maybe
     - react-basic
+    - refs
     - react-basic-dom
     - react-basic-hooks
     - web-dom

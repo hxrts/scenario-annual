@@ -13,6 +13,11 @@ build:
 # Run the test suites
 test:
     spago test -p sa-edition
+    spago test -p sa-handlers
+
+# The layers for impure work and the dependency direction (scripts/check/layers.js)
+_layers:
+    node scripts/check/layers.js
 
 # Format all PureScript sources
 fmt:
@@ -21,11 +26,20 @@ fmt:
 _fmt-check:
     purs-tidy check "packages/*/src/**/*.purs" "packages/*/test/**/*.purs" "apps/*/src/**/*.purs"
 
-# fmt-check, build, test
-check: _fmt-check build test
+# fmt-check, build, layers, test
+check: _fmt-check build _layers test
 
-# Dev server, proxying /api to the engine (ENGINE_URL, default https://scenario.hxrts.com)
+# The backend: reads the engine once a minute and serves GET /api/edition on 127.0.0.1:$PORT (default 8790)
+# (ENGINE_URL, default https://scenario.hxrts.com)
+backend: build
+    node -e 'import("./output/Annual.Main/index.js").then(m => m.main())'
+
+# The backend and the dev server together; the dev server proxies /api to the backend
 dev: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    node -e 'import("./output/Annual.Main/index.js").then(m => m.main())' &
+    trap 'kill $!' EXIT
     vite --config apps/newspaper/vite.config.mjs
 
 # Production bundle in apps/newspaper/dist
