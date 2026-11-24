@@ -112,13 +112,13 @@ vet b copy = { copy: Array.filter stands firsts, dropped: check b copy }
   firsts = Array.nubByEq (\x y -> x.slot == y.slot) (Array.filter (\w -> w.slot `elem` map _.slot b.bundles) copy)
   stands w = null (check (b { bundles = Array.filter (\x -> x.slot == w.slot) b.bundles }) [ w ])
 
--- | The page with its copy: a written story takes the writer's headline, and its summary in place of the facts.
+-- | The page with its copy: a written story takes the writer's headline and summary.
 applyCopy :: Copy -> FrontPage -> FrontPage
 applyCopy copy page = page { lead = map (written 0) page.lead, stories = mapWithIndex (\i -> written (i + 1)) page.stories }
   where
   written :: Int -> Story -> Story
   written slot s = case find (\w -> w.slot == slot) copy of
-    Just w -> s { headline = w.headline, body = [ w.summary ] }
+    Just w -> s { headline = w.headline, summary = w.summary }
     Nothing -> s
 
 words :: String -> Array String

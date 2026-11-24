@@ -122,3 +122,23 @@ main = runSpecAndExitProcess [ consoleReporter ] do
         `shouldEqual` [ Right NoRun, Right (Waiting "run-1"), Right (Printed "run-1" r Nothing), Right (Printed "run-1" r (Just copy)) ]
     it "a round's period in words" do
       map period [ 1, 6, 12, 18, 24, 36 ] `shouldEqual` [ "a month", "six months", "a year", "eighteen months", "two years", "three years" ]
+  describe "plain summaries" do
+    let
+      bal actor resource holding change = { actor, resource, holding, change }
+      page = frontPage empty
+        { enacted = [ "r1/US/4/rule 1" ]
+        , prices = [ { exchange: "industry-world", price: "2.18", change: "0.12" }, { exchange: "usd-rmb", price: "0.99", change: "-0.01" } ]
+        , shortfalls = [ { actor: "US", resource: "T", short: "5" }, { actor: "US", resource: "I", short: "3.94" }, { actor: "CN", resource: "T", short: "3" } ]
+        , balances = [ bal "CN" "RMB" "83.63" "-8.9", bal "US" "RMB" "19.6" "7.99", bal "US" "K_I" "2" "2" ]
+        }
+    it "each story reads as one plain sentence or two, until a writer's copy arrives" do
+      map _.summary page.lead `shouldEqual` Just "The United States brought a new measure into force; it holds until repealed."
+      map _.summary page.stories `shouldEqual`
+        [ "The world industrial market rose 0.12 to ¥2.18, and the dollar fetched 0.99 renminbi."
+        , "The United States ran short of technology and industrial inputs, and China of technology, leaving demand it could not meet."
+        , "China paid out ¥8.9, leaving it with ¥83.63. The United States now holds ¥19.6."
+        , "The United States' industrial capacity was built from nothing to 2."
+        ]
+    it "an acronym keeps its capitals mid-sentence" do
+      map _.summary (frontPage empty { prices = [ { exchange: "technology-us", price: "1.5", change: "0.03" } ] }).lead
+        `shouldEqual` Just "The US technology market rose 0.03 to $1.5."

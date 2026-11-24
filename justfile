@@ -34,11 +34,12 @@ check: _fmt-check build _layers test
 backend: build
     node -e 'import("./output/Annual.Main/index.js").then(m => m.main())'
 
-# The backend and the dev server together; the dev server proxies /api to the backend
+# The backend and the dev server together; the dev server proxies /api to the backend. The writer is off here unless
+# WRITER=on: the deployed backend already writes each round once, and a second backend would prompt every round again.
 dev: build
     #!/usr/bin/env bash
     set -euo pipefail
-    node -e 'import("./output/Annual.Main/index.js").then(m => m.main())' &
+    WRITER="${WRITER:-off}" node -e 'import("./output/Annual.Main/index.js").then(m => m.main())' &
     trap 'kill $!' EXIT
     vite --config apps/newspaper/vite.config.mjs
 

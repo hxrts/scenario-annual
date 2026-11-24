@@ -221,11 +221,11 @@ main = runSpecAndExitProcess [ consoleReporter ] do
           Right _ -> false
       ) `shouldEqual` true
   describe "the brief" do
-    it "bundles each printed story in page order, and the copy replaces its headline and facts" do
+    it "bundles each printed story in page order, and the copy replaces its headline and summary" do
       let page = frontPage (report 2)
       map _.slot (brief page).bundles `shouldEqual` [ 0 ]
       map _.facts (brief page).bundles `shouldEqual` [ [ "In force: Tariff" ] ]
-      map (\s -> joinWith "|" ([ s.headline ] <> s.body)) (applyCopy (copyOf goodLead) page).lead
+      map (\s -> joinWith "|" [ s.headline, s.summary ]) (applyCopy (copyOf goodLead) page).lead
         `shouldEqual` Just "Washington imposes a tariff as trade tensions sharpen|The United States put a new tariff into force, raising the cost of Chinese inputs for American buyers and signalling that Washington is prepared to trade cheaper supplies for leverage over its rival's industry."
     it "checks every slot answered once, the lengths, and that each figure is in the facts" do
       let b = { round: 2, rounds: 5, period: "two years", markets: [], bundles: [ { slot: 0, section: "Markets", draft: "World industrial market rises to ¥2.18", facts: [ "World industrial market at ¥2.18 (+0.12)" ] } ] }

@@ -188,7 +188,7 @@ lead s = D.article
           , children:
               [ kicker s
               , D.h2 { className: "lead-headline", children: [ D.text s.headline ] }
-              , D.ul { className: "lead-points", children: map (\l -> D.li_ [ D.text l ]) s.body }
+              , D.p { className: "lead-summary", children: [ D.text s.summary ] }
               ]
           }
       , media "media media-lead"
@@ -207,7 +207,7 @@ story s = D.article
       [ media "media media-story"
       , kicker s
       , D.h3 { className: "story-headline", children: [ D.text s.headline ] }
-      , D.ul { className: "story-points", children: map (\l -> D.li_ [ D.text l ]) s.body }
+      , D.p { className: "story-summary", children: [ D.text s.summary ] }
       ]
   }
 
