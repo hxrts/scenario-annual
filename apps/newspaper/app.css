@@ -58,7 +58,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
 
 /* Masthead: one three-column grid (NYT's date at the side, double rule beneath; FT's caps title). The side columns
    are equal, so the title stays centred; the left holds the date over the round in one small sans. Sticks on scroll. */
-.masthead { position: sticky; top: 0; z-index: 10; background: var(--paper); border-bottom: 3px double var(--rule-strong);
+.masthead { background: var(--paper); border-bottom: 3px double var(--rule-strong);
   display: grid; grid-template-columns: 1fr; justify-items: center; row-gap: .3rem; padding: .6rem var(--gutter) .5rem; }
 .masthead-title { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
   /* The type is a size down from the box it sits in (--title-box), so the bar keeps its height. */
@@ -149,7 +149,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
 .footer-date { font-family: var(--serif); font-size: 1.05rem; line-height: 1.25; margin: 0 0 .5rem; text-wrap: balance; }
 .footer-note { font-family: var(--sans); font-size: .66rem; letter-spacing: .05em; text-transform: uppercase; color: var(--strip-muted); margin: 0; white-space: nowrap; }
 .footer-column li { font-family: var(--sans); font-size: .85rem; line-height: 1.35; }
-.lead, .story { scroll-margin-top: 6rem; }
+.lead, .story { scroll-margin-top: 1rem; }
 
 /* Tablet and up: NYT-style columns separated by vertical hairlines. */
 @media (min-width: 48rem) {

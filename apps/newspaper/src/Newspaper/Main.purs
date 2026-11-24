@@ -30,9 +30,9 @@ import Web.HTML.Window (document)
 
 data Edition = NoRun | Waiting String | Printed String FrontPage | Trouble String
 
--- | The backend reads the engine once a minute, so reading the backend more often finds nothing new.
+-- | Every 30 seconds: an unchanged issue costs a bodyless 304, so a new one, or its written copy, shows within half a minute.
 pollMs :: Milliseconds
-pollMs = Milliseconds 60000.0
+pollMs = Milliseconds 30000.0
 
 mkPaper :: Component Unit
 mkPaper = component "Paper" \_ -> React.do
