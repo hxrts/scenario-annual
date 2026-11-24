@@ -3,11 +3,14 @@ module Edition.FrontPage (Story, FrontPage, Tick, Direction(..), frontPage, dire
 
 import Prelude
 
-import Data.Array (filter, sortWith, foldl, length, nub, null, uncons, unsnoc)
+import Data.Array (filter, head, mapMaybe, sortWith, take, foldl, length, nub, null, uncons, unsnoc)
 import Data.Number (abs, fromString)
-import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing, maybe)
+import Data.Traversable (traverse)
 import Data.Foldable (any)
-import Data.String (Pattern(..), Replacement(..), contains, drop, joinWith, replaceAll, stripPrefix, take, toUpper)
+import Control.Alt ((<|>))
+import Data.String (Pattern(..), Replacement(..), contains, drop, joinWith, replaceAll, stripPrefix, toUpper)
+import Data.String as String
 import Edition.Names as Names
 import Edition.Report (Report)
 
@@ -35,9 +38,9 @@ type FrontPage = { round :: Int, rounds :: Int, roundMonths :: Int, ticker :: Ar
 
 frontPage :: Report -> FrontPage
 frontPage r =
-  case uncons (policy <> markets <> distress <> failures) of
+  case uncons (policy <> markets <> distress <> finance <> industry <> households <> failures) of
     Nothing -> { round: r.round, rounds: r.rounds, roundMonths: r.roundMonths, ticker, lead: Nothing, stories: [] }
-    Just { head, tail } -> { round: r.round, rounds: r.rounds, roundMonths: r.roundMonths, ticker, lead: Just head, stories: tail }
+    Just { head, tail } -> { round: r.round, rounds: r.rounds, roundMonths: r.roundMonths, ticker, lead: Just head, stories: take topStories tail }
   where
   ticker = map (\p -> { name: Names.tickerName p.exchange, price: Names.priced p.exchange p.price, change: Names.signed p.change, direction: direction p.change, rate: Names.isRate p.exchange }) (sortWith (_.exchange >>> Names.tickerRank) r.prices)
 
@@ -46,13 +49,17 @@ frontPage r =
     | otherwise =
         [ { kicker: "Policy"
           , headline: policyHeadline
-          , body: map (\m -> "In force: " <> Names.phrase m) r.enacted <> map (\m -> "Repealed: " <> Names.phrase m) r.repealed
+          , body: measureLines "In force" r.enacted <> measureLines "Repealed" r.repealed
           }
         ]
   policyHeadline
-    | null r.repealed = "New rules take effect: " <> listed (map Names.phrase r.enacted)
-    | null r.enacted = "Rules repealed: " <> listed (map Names.phrase r.repealed)
-    | otherwise = "Policy shake-up: " <> count r.enacted "rule" <> " in, " <> show (length r.repealed) <> " out"
+    | null r.repealed = maybe ("New rules take effect: " <> listed (map Names.phrase r.enacted)) enactedHeadline (owners r.enacted)
+    | null r.enacted = maybe ("Rules repealed: " <> listed (map Names.phrase r.repealed)) repealedHeadline (owners r.repealed)
+    | otherwise = "Policy shake-up: " <> count r.enacted "measure" <> " in, " <> show (length r.repealed) <> " out"
+  repealedHeadline who
+    | length r.repealed == 1 = "A measure from " <> listed who <> " is repealed"
+    | otherwise = show (length r.repealed) <> " measures from " <> listed who <> " are repealed"
+  enactedHeadline who = capitalise (listed who) <> (if length who == 1 then " enacts " else " enact ") <> measures r.enacted
 
   markets = case biggestMove of
     Nothing -> []
@@ -86,7 +93,62 @@ frontPage r =
               <> map lapsedLine (nub (map Names.dealOwner r.lapsed))
           }
         ]
+  -- what moved in the balances: holdings whose change is not zero, largest first
+  moved keep = sortWith (\b -> negate (magnitude b.change)) (filter (\b -> keep b && direction b.change /= Flat) r.balances)
+
+  finance = case moved (\b -> Names.isCurrency b.resource && not (Names.isHousehold b.actor) && b.actor /= "ROW") of
+    xs | Just top <- head xs ->
+      [ { kicker: "Finance"
+        , headline: capitalise (Names.actor top.actor) <> (if direction top.change == Up then " takes in " else " pays out ") <> Names.money top.resource (unsigned top.change)
+        , body: map (\b -> capitalise (Names.actor b.actor) <> " holds " <> Names.money b.resource b.holding <> " (" <> Names.signed b.change <> ")") (take 4 xs)
+        }
+      ]
+    _ -> []
+
+  industry = case moved (\b -> Names.isCapability b.resource) of
+    xs | Just top <- head xs ->
+      [ { kicker: "Industry"
+        , headline: capitalise (Names.actor top.actor) <> (if direction top.change == Up then " builds up its " else " loses some of its ") <> Names.resource top.resource
+        , body: map (\b -> capitalise (Names.possessive b.actor) <> " " <> Names.resource b.resource <> " at " <> b.holding <> " (" <> Names.signed b.change <> ")") (take 4 xs)
+        }
+      ]
+    _ -> []
+
+  households = case moved (\b -> Names.isHousehold b.actor) of
+    xs | Just top <- head xs ->
+      [ { kicker: "Households"
+        , headline: capitalise (Names.actor top.actor) <> (if direction top.change == Up then " gain " else " lose ") <> Names.money top.resource (unsigned top.change)
+        , body: map (\b -> capitalise (Names.actor b.actor) <> " hold " <> Names.money b.resource b.holding <> " (" <> Names.signed b.change <> ")") (take 4 xs)
+        }
+      ]
+    _ -> []
+
   lapsedLine owner = capitalise owner <> ": " <> count (filter (\x -> Names.dealOwner x == owner) r.lapsed) "offer" <> " lapsed unanswered"
+
+-- | Who proposed each measure, once each, when every id names its proposer; otherwise nothing, and the paper falls
+-- | back to the measures' own names.
+owners :: Array String -> Maybe (Array String)
+owners ids = nub <$> traverse Names.measureOwner ids
+
+-- | "a new measure", "3 new measures".
+measures :: Array String -> String
+measures ids = if length ids == 1 then "a new measure" else show (length ids) <> " new measures"
+
+-- | One line per proposer: "In force: a measure from the United States", "In force: 2 measures from China"; a measure
+-- | whose id names no proposer keeps a line of its own.
+measureLines :: String -> Array String -> Array String
+measureLines label ids =
+  map (\who -> label <> ": " <> (let n = length (filter (\i -> Names.measureOwner i == Just who) ids) in if n == 1 then "a measure" else show n <> " measures") <> " from " <> who)
+    (nub (mapMaybe Names.measureOwner ids))
+    <> map (\i -> label <> ": " <> Names.phrase i) (filter (isNothing <<< Names.measureOwner) ids)
+
+-- | A change without its sign: "-4.14" is "4.14".
+unsigned :: String -> String
+unsigned c = fromMaybe c (stripPrefix (Pattern "-") c <|> stripPrefix (Pattern "+") c)
+
+-- | How many stories the page prints under the lead: the first in priority order.
+topStories :: Int
+topStories = 4
 
 count :: forall a. Array a -> String -> String
 count xs noun = show (length xs) <> " " <> noun <> (if length xs == 1 then "" else "s")
@@ -99,7 +161,7 @@ listed xs = case unsnoc xs of
   Just { init, last } -> joinWith ", " init <> " and " <> last
 
 capitalise :: String -> String
-capitalise s = toUpper (take 1 s) <> drop 1 s
+capitalise s = toUpper (String.take 1 s) <> drop 1 s
 
 -- | How far a display-string change moved, ignoring its sign; text that is not a number (such as "<0.01") is 0.
 magnitude :: String -> Number

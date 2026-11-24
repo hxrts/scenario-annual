@@ -8,7 +8,6 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Array (null)
 import Data.String (toLower)
-import Data.Tuple (Tuple(..))
 import Edition.Calendar (Date, issueDate)
 import Edition.FrontPage (Direction(..), FrontPage, Story, Tick, frontPage)
 import Edition.Report (Report, playedThrough)
@@ -120,7 +119,7 @@ body = case _ of
           else D.section
             { className: "top"
             , children:
-                [ D.h2 { className: "rule-heading", children: [ D.text "More top stories" ] }
+                [ D.h2 { className: "rule-heading", children: [ D.text "Top stories" ] }
                 , D.div { className: "columns", children: map story p.stories }
                 ]
             }
@@ -146,20 +145,23 @@ footer page = D.footer
                   { className: "footer-brand"
                   , children:
                       [ D.p { className: "footer-title", children: [ D.text "Scenario Annual" ] }
-                      , D.p { className: "footer-blurb", children: [ D.text "Reporting on global markets, trade and policy: the prices that move, the measures that pass, and the deals that fall through." ] }
+                      , D.p { className: "footer-blurb", children: [ D.text "Reporting on the prices that move global markets and the policies that shape trade." ] }
                       ]
                   }
-              , column "Sections" (map (\(Tuple name href) -> D.a { href, children: [ D.text name ] }) sections)
-              , column "Markets" (map D.text [ "World technology", "World industry", "US technology", "China industry", "Dollar–renminbi" ])
-              , column "Edition" [ D.text (longDate date), D.text "Updated as markets close" ]
+              , column "Sections" (map D.text sections)
+              , column "Markets" (map D.text [ "World technology", "World industry", "US technology", "China industry", "US dollar in yuan" ])
+              , column "Edition" [ D.text (longDate date), D.text "Updated at market close" ]
               ]
           }
       ]
   }
   where
   date = maybe today (\p -> issueDate p.roundMonths today p.round) page
-  sections = [ Tuple "Policy" "#policy", Tuple "Markets" "#markets", Tuple "Shortages" "#shortages", Tuple "Dealmaking" "#dealmaking" ]
-  column heading items = D.nav
+  -- the sections this edition prints; with no edition yet, every section the paper has
+  sections = case page of
+    Just p -> map _.kicker (maybe [] pure p.lead <> p.stories)
+    Nothing -> [ "Policy", "Markets", "Shortages", "Finance", "Industry", "Households", "Dealmaking" ]
+  column heading items = D.div
     { className: "footer-column"
     , children:
         [ D.h2 { className: "footer-heading", children: [ D.text heading ] }
@@ -172,18 +174,29 @@ lead s = D.article
   { className: "lead"
   , id: anchor s
   , children:
-      [ kicker s
-      , D.h2 { className: "lead-headline", children: [ D.text s.headline ] }
-      , D.ul { className: "lead-points", children: map (\l -> D.li_ [ D.text l ]) s.body }
+      [ D.div
+          { className: "lead-text"
+          , children:
+              [ kicker s
+              , D.h2 { className: "lead-headline", children: [ D.text s.headline ] }
+              , D.ul { className: "lead-points", children: map (\l -> D.li_ [ D.text l ]) s.body }
+              ]
+          }
+      , media "media media-lead"
       ]
   }
+
+-- | Where a story's picture will go: an empty frame at the picture's proportions, until the paper has pictures.
+media :: String -> JSX
+media className = D.div { className, role: "presentation" }
 
 story :: Story -> JSX
 story s = D.article
   { className: "story"
   , id: anchor s
   , children:
-      [ kicker s
+      [ media "media media-story"
+      , kicker s
       , D.h3 { className: "story-headline", children: [ D.text s.headline ] }
       , D.ul { className: "story-points", children: map (\l -> D.li_ [ D.text l ]) s.body }
       ]

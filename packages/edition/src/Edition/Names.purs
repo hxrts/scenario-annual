@@ -14,13 +14,19 @@ module Edition.Names
   , deal
   , dealOwner
   , phrase
+  , measureOwner
+  , possessive
+  , money
+  , isCurrency
+  , isCapability
+  , isHousehold
   ) where
 
 import Prelude
 
 import Data.Array (index)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.String (Pattern(..), Replacement(..), replaceAll, split, stripPrefix, take, drop, toUpper)
+import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.String (Pattern(..), Replacement(..), replaceAll, split, stripPrefix, stripSuffix, take, drop, toUpper)
 import Data.String.CodeUnits as CU
 
 actor :: String -> String
@@ -112,6 +118,35 @@ deal :: String -> String
 deal id = case index (split (Pattern "/") id) 1 of
   Just a -> "a deal from " <> actor a
   Nothing -> tidy id
+
+-- | Who proposed a measure, from its id: the engine names an enacted Rule after the candidate transaction that made
+-- | it (`r1/US/4/rule 1` is the United States', proposed in round 1). An id in another form names no one.
+measureOwner :: String -> Maybe String
+measureOwner id = case split (Pattern "/") id of
+  parts | Just r <- index parts 0, Just a <- index parts 1, take 1 r == "r", a /= "" -> Just (actor a)
+  _ -> Nothing
+
+-- | An actor's name as an owner: "China's", "the US firm's", "US households'".
+possessive :: String -> String
+possessive a = let n = actor a in if CU.charAt (CU.length n - 1) n == Just 's' then n <> "'" else n <> "'s"
+
+-- | An amount of a currency with its symbol ($4.14, ¥16.58); any other resource keeps its bare number.
+money :: String -> String -> String
+money res amount = case res of
+  "USD" -> "$" <> amount
+  "RMB" -> "¥" <> amount
+  _ -> amount
+
+isCurrency :: String -> Boolean
+isCurrency r = r == "USD" || r == "RMB"
+
+-- | Productive capability: capacity (`K_…`) and know-how (`S_…`).
+isCapability :: String -> Boolean
+isCapability r = take 2 r == "K_" || take 2 r == "S_"
+
+-- | A household sector (`US-private`, `CN-private`).
+isHousehold :: String -> Boolean
+isHousehold a = isJust (stripSuffix (Pattern "-private") a)
 
 -- | Engine prose with codes in it, such as a rejection reason or a measure's name.
 phrase :: String -> String

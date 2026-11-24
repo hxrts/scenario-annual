@@ -5,10 +5,13 @@
 :root {
   --paper: #fff1e5;
   --paper-deep: #f2dfce;
-  --ink: #1a1817;
-  --ink-soft: #4d4845;
-  --ink-muted: #66605c;
-  --rule: #ccc1b7;
+  /* softer inks and rules, after the FT: warm charcoal for text, warm greys for summaries, light hairlines */
+  --ink: #262220;
+  --ink-soft: #66605c;
+  --ink-muted: #736c67;
+  --rule: #e3d5c8;
+  --rule-strong: #bcb1a7;
+  --dots: #a69c94;
   --strip: #221d1a;
   --strip-ink: #f7e6d6;
   --strip-muted: #b3a294;
@@ -55,34 +58,72 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
 
 /* Masthead: one three-column grid (NYT's date at the side, double rule beneath; FT's caps title). The side columns
    are equal, so the title stays centred; the left holds the date over the round in one small sans. Sticks on scroll. */
-.masthead { position: sticky; top: 0; z-index: 10; background: var(--paper); border-bottom: 3px double var(--ink);
+.masthead { position: sticky; top: 0; z-index: 10; background: var(--paper); border-bottom: 3px double var(--rule-strong);
   display: grid; grid-template-columns: 1fr; justify-items: center; row-gap: .3rem; padding: .6rem var(--gutter) .5rem; }
-.masthead-title { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-  font-size: clamp(1.5rem, 7vw, 3.75rem); line-height: 1; margin: 0; }
-.masthead-meta { display: flex; flex-direction: column; align-items: center; font-family: var(--sans); font-size: .72rem;
-  line-height: 1.45; color: var(--ink-soft); }
+.masthead-title { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
+  /* The type is a size down from the box it sits in (--title-box), so the bar keeps its height. */
+  --title-box: clamp(1.5rem, 7vw, 3.75rem); font-size: clamp(1.35rem, 6.2vw, 3.3rem); line-height: var(--title-box); margin: 0; }
+.masthead-meta { display: flex; flex-direction: column; align-items: center; font-family: var(--sans); font-size: .78rem;
+  line-height: 1.45; color: color-mix(in srgb, var(--ink-soft) 70%, var(--ink)); }
 
 .front { max-width: 75rem; margin: 0 auto; padding: 1.5rem var(--gutter) 3rem; }
-/* Section label (NYT's "ANALYSIS" tracking, FT's claret). */
+/* Type after the NYT and FT: headlines tight (1.1–1.2) and not heavy, summaries grey and airy (1.45–1.5), the
+   label close over its headline and the headline close over its summary; balanced headlines, no orphaned words. */
 .kicker { font-family: var(--sans); font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--claret); margin: 0 0 .25rem; }
+  color: var(--claret); margin: 0 0 .3rem; }
 
-.lead-headline { font-weight: 700; font-size: clamp(1.75rem, 7vw, 3.25rem); line-height: 1.08; letter-spacing: -.01em; margin: 0 0 .75rem; }
+/* Cover story: FT's display headline, medium weight at the optical size for display, over a sans standfirst. */
+.lead .kicker { margin-bottom: .2rem; }
+.lead-headline { font-weight: 500; font-size: clamp(2rem, 6.5vw, 3.6rem); line-height: .94; letter-spacing: -.018em;
+  margin: -.02em 0 .7rem; text-wrap: balance; }
 .lead-points, .story-points { list-style: none; margin: 0; padding: 0; color: var(--ink-muted); }
-.lead-points li { font-size: 1.1rem; line-height: 1.45; padding-left: .85rem; border-left: 2px solid var(--rule); margin-bottom: .5rem; }
-.story-headline { font-weight: 700; font-size: 1.3rem; line-height: 1.2; margin: 0 0 .5rem; }
-.story-points li { font-size: 1rem; line-height: 1.45; margin-bottom: .3rem; font-variant-numeric: tabular-nums; }
+.lead-points li { font-family: var(--sans); font-size: 1.1rem; line-height: 1.45; margin-bottom: .15rem; text-wrap: pretty; }
+
+/* Smaller stories: NYT's semibold heads over serif summaries. */
+.story-headline { font-weight: 600; font-size: 1.3rem; line-height: 1.12; letter-spacing: -.005em; margin: 0 0 .4rem; text-wrap: balance; }
+.story-points li { font-size: .98rem; line-height: 1.34; margin-bottom: .4rem; font-variant-numeric: tabular-nums; text-wrap: pretty; }
+.story-points li:last-child { margin-bottom: 0; }
+
+/* Picture frames: empty, at the picture's proportions, in the paper's deeper tone, until the paper has pictures. */
+.media { background: var(--paper-deep); aspect-ratio: 3 / 2; width: 100%; }
+.media-lead { aspect-ratio: 16 / 9; margin-top: 1rem; }
+
+/* Above the fold on a phone: the cover story fills the first screen, and the top stories follow as a compact list,
+   each with a small picture on the right of its label and headline (NYT's and FT's mobile lists), so the first one
+   starts whole rather than with half a picture. */
+.story { display: grid; grid-template-columns: minmax(0, 1fr) 6.5rem; column-gap: 1rem; align-items: start; }
+.story > .media-story { grid-column: 2; grid-row: 1 / span 2; aspect-ratio: 4 / 3; }
+.story > .kicker { grid-column: 1; grid-row: 1; }
+.story > .story-headline { grid-column: 1; grid-row: 2; }
+.story > .story-points { grid-column: 1 / -1; grid-row: 3; margin-top: .5rem; }
 
 /* Dotted rule with a centred tracked heading (FT "TOP STORIES"). */
-.top { margin-top: 2rem; }
-.rule-heading { font-family: var(--sans); font-size: .8rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
-  text-align: center; margin: 0 0 1.25rem; padding-top: 1rem;
-  background: radial-gradient(circle, var(--ink-muted) .6px, transparent .8px) top / 4px 4px repeat-x; }
+.top { margin-top: 1.75rem; }
+.rule-heading { font-family: var(--sans); font-size: .78rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+  text-align: center; margin: 0 0 1.15rem; }
+/* FT's rule: a band of three rows of dots, set tight, above the heading. */
+.rule-heading::before { content: ""; display: block; height: 9px; margin-bottom: .9rem;
+  background: radial-gradient(circle, var(--dots) .7px, transparent .9px) 0 0 / 3px 3px repeat; }
 
-/* Phone: one column, hairlines between stories. */
+/* Phone: one column, a hairline between stories with equal space either side of it. */
 .columns { display: grid; grid-template-columns: 1fr; }
 .story { padding: 1rem 0; border-top: 1px solid var(--rule); }
 .story:first-child { border-top: 0; padding-top: 0; }
+
+/* From tablet up the columns are equal (a true gap, not padding), so every column and picture is the same width;
+   the vertical hairline is drawn in the middle of the gap, and a hairline across each new row spans the gutters. */
+@media (min-width: 48rem) {
+  .story { display: block; }
+  .story > .media-story { aspect-ratio: 16 / 9; margin-bottom: .75rem; }
+  .story > .story-points { margin-top: 0; }
+  .columns { column-gap: 2rem; row-gap: 2.4rem; }
+  .story, .story:first-child { position: relative; padding: 0; border-top: 0; }
+  .story::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1rem; border-left: 1px solid var(--rule); }
+  .story:nth-child(2n + 1)::before { content: none; }
+  .story:nth-child(n + 3)::after { content: ""; position: absolute; top: -1.2rem; left: -1rem; right: -1rem; border-top: 1px solid var(--rule); }
+  .story:nth-child(2n + 1)::after { left: 0; }
+  .story:nth-child(2n)::after { right: 0; }
+}
 
 .note { text-align: center; font-style: italic; color: var(--ink-soft); margin: 4rem var(--gutter); }
 
@@ -90,38 +131,55 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
    five, each list two or three; on a phone the wordmark takes the full width and the lists pair up. */
 .page { min-height: 100dvh; display: flex; flex-direction: column; }
 .page > main, .page > .note { flex: 1; }
+/* a flex child with auto margins shrinks to its content: the page column keeps its full width */
+.page > main { width: 100%; box-sizing: border-box; }
 .footer { background: var(--strip); color: var(--strip-ink); margin-top: 3rem; border-top: 3px double var(--strip-rule); }
 .footer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem var(--gutter);
   max-width: 75rem; margin: 0 auto; padding: 2.5rem var(--gutter); }
 .footer-brand { grid-column: 1 / -1; }
-.footer-title { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-  font-size: 1.6rem; line-height: 1; margin: 0 0 .75rem; }
-.footer-blurb { font-family: var(--serif); font-size: .95rem; line-height: 1.5; color: var(--strip-muted); margin: 0; max-width: 26rem; }
+.footer-title { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
+  font-size: 1.4rem; line-height: 1; margin: 0 0 .75rem; }
+.footer-blurb { font-family: var(--serif); font-size: .88rem; line-height: 1.5; color: var(--strip-muted); margin: 0; max-width: 26rem; text-wrap: balance; }
 .footer-heading { font-family: var(--sans); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--strip-muted); margin: 0 0 .8rem; padding-bottom: .5rem; border-bottom: 1px solid var(--strip-rule); }
+  color: var(--strip-muted); margin: 0 0 .8rem; }
 .footer-column ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
 .footer-column li { font-family: var(--sans); font-size: .85rem; line-height: 1.35; }
-.footer-column a { color: var(--strip-ink); text-decoration: none; }
-.footer-column a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .lead, .story { scroll-margin-top: 6rem; }
 
 /* Tablet and up: NYT-style columns separated by vertical hairlines. */
 @media (min-width: 48rem) {
   .ticker li.rate { margin-left: auto; }
   :root { --gutter: 1.5rem; }
-  .masthead { grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: stretch; padding-block: 1rem;
+  .masthead { grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: stretch;
+    /* The trimmed title is cap-height tall (.708em in Playfair), so add back half the cap height it lost on each side. */
+    padding-block: calc(1rem + (clamp(1.5rem, 7vw, 3.75rem) - clamp(1.35rem, 6.2vw, 3.3rem)) * .354);
     padding-inline: max(var(--gutter), calc((100% - 75rem) / 2 + var(--gutter))); }
   .masthead-meta { grid-column: 1; grid-row: 1; align-items: flex-start; }
   /* The title is all capitals: its box is trimmed to the cap height and the baseline, so the bar's equal padding is
      the space seen above and below the letters, and they sit centred in the bar. */
   .masthead-title { grid-column: 2; grid-row: 1; text-box: trim-both cap alphabetic; }
-  .lead { max-width: 46rem; }
+  .lead-text { max-width: 46rem; }
   .footer-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); padding-top: 3rem; }
   .footer-brand { grid-column: 1 / span 5; }
-  .footer-column:nth-of-type(1) { grid-column: 7 / span 2; }
-  .footer-column:nth-of-type(2) { grid-column: 9 / span 2; }
-  .footer-column:nth-of-type(3) { grid-column: 11 / span 2; }
-  .columns { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
-  .story, .story:first-child { border-top: 0; padding: 0 1.5rem; border-left: 1px solid var(--rule); }
-  .story:first-child { border-left: 0; padding-left: 0; }
+  .footer-column:nth-of-type(2) { grid-column: 7 / span 2; }
+  .footer-column:nth-of-type(3) { grid-column: 9 / span 2; }
+  .footer-column:nth-of-type(4) { grid-column: 11 / span 2; }
+  /* Tablet: two columns. */
+  .columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Desktop: the cover story beside its picture, and four columns, on the same rules. */
+@media (min-width: 64rem) {
+  /* Above the fold on a laptop: the masthead, the cover story and all four top-story headlines on the first screen.
+     The text takes the wider column; both pictures take their height from the screen's, between bounds. */
+  .lead { max-width: none; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 2rem; align-items: start; }
+  .media-lead { margin-top: 0; aspect-ratio: auto; height: clamp(13rem, (100svh - 21rem) * .66, 25rem); }
+  .media-story { height: clamp(6rem, (100svh - 21rem) * .3, 11rem); }
+  .columns { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .story:nth-child(n)::before { content: ""; }
+  .story:nth-child(4n + 1)::before { content: none; }
+  .story:nth-child(n)::after { content: none; }
+  .story:nth-child(n + 5)::after { content: ""; left: -1rem; right: -1rem; }
+  .story:nth-child(4n + 1)::after { left: 0; }
+  .story:nth-child(4n)::after { right: 0; }
 }

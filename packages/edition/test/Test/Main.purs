@@ -2,7 +2,7 @@ module Test.Main where
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Edition.Calendar (addMonths, issueDate)
 import Edition.FrontPage (Direction(..), direction, frontPage)
 import Edition.Report (Report, playedThrough)
@@ -24,6 +24,48 @@ main = runSpecAndExitProcess [ consoleReporter ] do
       let p = frontPage empty { enacted = [ "tariff" ], prices = [ { exchange: "USD/CNY", price: "7.1", change: "+0.2" } ] }
       map _.headline p.lead `shouldEqual` Just "New rules take effect: Tariff"
       map _.headline p.stories `shouldEqual` [ "USD/CNY rises to 7.1" ]
+    it "names who enacted a measure when its id says, and keeps a name it cannot read" do
+      let
+        one = frontPage empty { enacted = [ "r1/US/4/rule 1" ] }
+        two = frontPage empty { enacted = [ "r1/US/4/rule 1", "r2/CN/2/rule 1", "r2/US/5/rule 1" ] }
+      map _.headline one.lead `shouldEqual` Just "The United States enacts a new measure"
+      map _.body one.lead `shouldEqual` Just [ "In force: a measure from the United States" ]
+      map _.headline two.lead `shouldEqual` Just "The United States and China enact 3 new measures"
+      map _.body two.lead `shouldEqual` Just [ "In force: 2 measures from the United States", "In force: a measure from China" ]
+      map _.headline (frontPage empty { repealed = [ "r1/US/4/rule 1" ] }).lead `shouldEqual` Just "A measure from the United States is repealed"
+    it "finance, industry and households stories read the balances, largest move first, and only what moved" do
+      let
+        bal actor resource holding change = { actor, resource, holding, change }
+        p = frontPage empty
+          { balances =
+              [ bal "CN" "RMB" "96.19" "16.58"
+              , bal "US" "USD" "111.23" "-4.14"
+              , bal "US" "K_T" "2" "0"
+              , bal "CN-firm" "K_I" "2.5" "0.5"
+              , bal "US-private" "USD" "6.9" "3.46"
+              , bal "CN-private" "RMB" "5.82" "-1.29"
+              , bal "ROW" "USD" "20.43" "-1.57"
+              ]
+          }
+      map _.kicker (maybe [] pure p.lead <> p.stories) `shouldEqual` [ "Finance", "Industry", "Households" ]
+      map _.headline (maybe [] pure p.lead <> p.stories) `shouldEqual`
+        [ "China takes in ¥16.58", "The Chinese firm builds up its industrial capacity", "US households gain $3.46" ]
+      map _.body p.lead `shouldEqual` Just [ "China holds ¥96.19 (+16.58)", "The United States holds $111.23 (−4.14)" ]
+      map _.body p.stories `shouldEqual`
+        [ [ "The Chinese firm's industrial capacity at 2.5 (+0.5)" ]
+        , [ "US households hold $6.9 (+3.46)", "Chinese households hold ¥5.82 (−1.29)" ]
+        ]
+    it "prints the lead and at most four top stories, the first in priority order" do
+      let
+        p = frontPage empty
+          { enacted = [ "r1/US/4/rule 1" ]
+          , prices = [ { exchange: "industry-cn", price: "2.55", change: "0.03" } ]
+          , shortfalls = [ { actor: "US", resource: "T", short: "1" } ]
+          , balances = [ { actor: "CN", resource: "RMB", holding: "9", change: "1" }, { actor: "CN-firm", resource: "K_I", holding: "2", change: "1" }, { actor: "US-private", resource: "USD", holding: "3", change: "1" } ]
+          , lapsed = [ "r1/CN/1" ]
+          }
+      map _.kicker p.lead `shouldEqual` Just "Policy"
+      map _.kicker p.stories `shouldEqual` [ "Markets", "Shortages", "Finance", "Industry" ]
     it "orders the strip: world tech, world industry, then the US, then China, then the rest" do
       let
         at x = { exchange: x, price: "1", change: "0" }
