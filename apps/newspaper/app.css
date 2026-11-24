@@ -62,7 +62,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
   display: grid; grid-template-columns: 1fr; justify-items: center; row-gap: .3rem; padding: .6rem var(--gutter) .5rem; }
 .masthead-title { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
   /* The type is a size down from the box it sits in (--title-box), so the bar keeps its height. */
-  --title-box: clamp(1.5rem, 7vw, 3.75rem); font-size: clamp(1.1rem, 5vw, 2.55rem); line-height: var(--title-box); margin: 0; }
+  --title-box: clamp(1.5rem, 7vw, 3.75rem); font-size: clamp(1rem, 4.6vw, 2.3rem); line-height: var(--title-box); margin: 0; }
 .masthead-meta { display: flex; flex-direction: column; align-items: center; font-family: var(--sans); font-size: .78rem;
   line-height: 1.45; color: color-mix(in srgb, var(--ink-soft) 70%, var(--ink)); }
 
@@ -74,7 +74,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
 
 /* Cover story: FT's display headline, medium weight at the optical size for display, over a sans standfirst. */
 .lead .kicker { margin-bottom: .2rem; }
-.lead-headline { font-weight: 500; font-size: clamp(1.85rem, 6vw, 3.25rem); line-height: 1; letter-spacing: -.018em;
+.lead-headline { font-weight: 500; font-size: clamp(1.75rem, 5.6vw, 3rem); line-height: 1; letter-spacing: -.018em;
   margin: -.02em 0 .7rem; text-wrap: balance; }
 .lead-summary, .story-summary { margin: 0; color: var(--ink-muted); }
 .lead-summary { font-family: var(--sans); font-size: 1.1rem; line-height: 1.45; text-wrap: pretty; }
@@ -156,7 +156,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--serif); m
   :root { --gutter: 1.5rem; }
   .masthead { grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: stretch;
     /* The trimmed title is cap-height tall (.708em in Playfair), so add back half the cap height it lost on each side. */
-    padding-block: calc(1rem + (clamp(1.5rem, 7vw, 3.75rem) - clamp(1.1rem, 5vw, 2.55rem)) * .354);
+    padding-block: calc(1rem + (clamp(1.5rem, 7vw, 3.75rem) - clamp(1rem, 4.6vw, 2.3rem)) * .354);
     padding-inline: max(var(--gutter), calc((100% - 75rem) / 2 + var(--gutter))); }
   .masthead-meta { grid-column: 1; grid-row: 1; align-items: flex-start; }
   /* The title is all capitals: its box is trimmed to the cap height and the baseline, so the bar's equal padding is
