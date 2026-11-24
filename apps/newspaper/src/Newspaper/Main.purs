@@ -111,12 +111,12 @@ masthead page = D.header
 body :: Edition -> JSX
 body = case _ of
   NoRun -> frame [] Nothing (note "No run is live. The presses are idle.")
-  Waiting _ -> frame [] Nothing (note "Going to press: awaiting the first round.")
+  Waiting _ -> frame [] Nothing (note "Going to press. The first edition is being set.")
   Trouble e -> frame [] Nothing (note ("Wire trouble: " <> e))
   Printed _ p -> frame p.ticker (Just p) $ D.main
     { className: "front"
     , children:
-        [ maybe (note "A quiet round.") lead p.lead
+        [ maybe (note "A quiet period in the markets.") lead p.lead
         , if null p.stories then mempty
           else D.section
             { className: "top"

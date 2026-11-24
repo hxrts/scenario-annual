@@ -76,8 +76,8 @@ reading =
   \`section` its section, `draft` a plain placeholder headline, and `facts` what happened, each a sentence with \
   \figures; a change in parentheses is the move since the last issue (− is a fall). \"Capacity\" is plant, \
   \\"know-how\" a trained workforce, \"the US firm\" and \"the Chinese firm\" each country's industry. You get one \
-  \attempt: a reply that misses a bundle, runs outside the lengths or states a figure the facts do not is discarded \
-  \whole."
+  \attempt: a story that runs outside the lengths, or states a figure that neither its facts nor `markets` state, is \
+  \discarded and its plain placeholder printed instead."
 
 voice :: String
 voice =
@@ -88,7 +88,7 @@ voice =
   \and why it matters, reading the story against how the economy works (above) and against the other stories and \
   \the markets: a shortage next to a new barrier, a price rise next to a shortage, a firm's debt next to its \
   \investment. Use only the facts given: every figure you \
-  \write must appear in that story's facts or draft, exactly as written there (you may drop a currency symbol or a \
+  \write must appear in that story's facts, its draft or `markets`, exactly as written there (you may drop a currency symbol or a \
   \sign), and never invent a quantity, a name, a quote or a cause the facts cannot support. Say \"the United States\" \
   \and \"China\" for the governments, \"American industry\" or \"the US firm\" and \"Chinese industry\" or \"the Chinese \
   \firm\" for the firms. Never mention a game, a simulation, a round, a seat, a player, a score or a model; this is a \

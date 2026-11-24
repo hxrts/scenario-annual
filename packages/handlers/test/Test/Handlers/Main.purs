@@ -22,7 +22,7 @@ import Effects.Api (Reply, answer)
 import Effects.Edition (refresh)
 import Effect.Exception (error)
 import Control.Monad.Error.Class (throwError)
-import Edition.Brief (Copy, applyCopy, brief, check, numbers)
+import Edition.Brief (Copy, applyCopy, brief, check, numbers, vet)
 import Edition.FrontPage (frontPage)
 import Effects.Signatures (_archive, _desk, _log, _wire, _write)
 import Handlers.Archive (Archive, TextFile, interpretArchive, openArchive)
@@ -194,7 +194,7 @@ main = runSpecAndExitProcess [ consoleReporter ] do
       held desk >>= shouldEqual { status: 200, body: stringify (encodeIssue (Printed "run-1" (report 2) Nothing)) }
       notes `shouldEqual`
         [ "published (Printed \"run-1\" round 2)"
-        , "no copy for run-1/2, printing the page's own headlines: the reply does not stand: slot 0 states 25, which its facts do not"
+        , "no copy for run-1/2, printing the page's own headlines: no story in the reply stands: slot 0 states 25, which neither its facts nor the markets do"
         ]
     it "the record outlives a restart: a written round reuses its copy, and a failed or cut-off round is not asked again" do
       file <- liftEffect (Ref.new Nothing)
@@ -231,5 +231,22 @@ main = runSpecAndExitProcess [ consoleReporter ] do
       let b = { round: 2, rounds: 5, period: "two years", markets: [], bundles: [ { slot: 0, section: "Markets", draft: "World industrial market rises to ¥2.18", facts: [ "World industrial market at ¥2.18 (+0.12)" ] } ] }
       check b (copyOf goodLead) `shouldEqual` []
       check b [] `shouldEqual` [ "slot 0 has no story" ]
-      check b (copyOf (reply "Industrial prices climb to 2.18 as buyers chase scarce supply" "World industrial prices rose by 0.12 to ¥2.18, and by 3 per cent against the dollar, as American buyers competed for scarce Chinese inputs while home-grown industry stood idle and know-how wore away.")) `shouldEqual` [ "slot 0 states 3, which its facts do not" ]
+      check b (copyOf (reply "Industrial prices climb to 2.18 as buyers chase scarce supply" "World industrial prices rose by 0.12 to ¥2.18, and by 3 per cent against the dollar, as American buyers competed for scarce Chinese inputs while home-grown industry stood idle and know-how wore away.")) `shouldEqual` [ "slot 0 states 3, which neither its facts nor the markets do" ]
       numbers "¥2.18 (+0.12), up 3." `shouldEqual` [ "2.18", "0.12", "3" ]
+    it "vets story by story: a figure from the market strip is allowed, and a story that fails alone keeps its placeholder" do
+      let
+        b =
+          { round: 2
+          , rounds: 5
+          , period: "two years"
+          , markets: [ "USD/CNY 0.99 (−0.01)" ]
+          , bundles:
+              [ { slot: 0, section: "Markets", draft: "World industrial market rises to ¥2.18", facts: [ "World industrial market at ¥2.18 (+0.12)" ] }
+              , { slot: 1, section: "Shortages", draft: "Shortages hit China", facts: [ "China is 3 short of technology" ] }
+              ]
+          }
+        lead = { slot: 0, headline: "Industrial prices climb as the dollar slips to 0.99", summary: "World industrial prices rose to ¥2.18 over the past two years as the dollar slipped against the renminbi, making Chinese inputs dearer for American buyers and giving idle American plants a reason to restart." }
+        bad = { slot: 1, headline: "China runs 7 short of technology", summary: "China ended the period 7 units short of technology, exposed to any American export control." }
+        vetted = vet b [ lead, bad, lead ]
+      vetted.copy `shouldEqual` [ lead ]
+      vetted.dropped `shouldEqual` [ "slot 0 is written more than once", "slot 1 states 7, which neither its facts nor the markets do" ]

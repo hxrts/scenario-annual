@@ -12,6 +12,8 @@ module Edition.Brief
   , targets
   , brief
   , check
+  , Vetted
+  , vet
   , applyCopy
   , words
   , numbers
@@ -65,9 +67,9 @@ brief page =
   where
   bundle slot s = { slot, section: s.kicker, draft: s.headline, facts: s.body }
 
--- | What is wrong with a reply, each as a sentence a correction can quote; none when the copy stands. Every bundle is
--- | answered once and nothing else is; each headline and summary is within its target, give or take a quarter; and
--- | every number written is one the bundle's facts state, so a writer cannot invent a quantity.
+-- | What is wrong with a reply, each as a sentence; none when all of it stands. Every bundle is answered once and nothing
+-- | else is; each headline and summary is within its target, give or take a quarter; and every number written is one
+-- | the bundle's facts or the market strip state, so a writer cannot invent a quantity.
 check :: Brief -> Copy -> Array String
 check b copy = missing <> extra <> twice <> Array.concatMap judged copy
   where
@@ -81,14 +83,14 @@ check b copy = missing <> extra <> twice <> Array.concatMap judged copy
     Just bundle ->
       let
         t = if w.slot == 0 then targets.lead else targets.story
-        stated = Array.concatMap numbers (bundle.draft : bundle.facts)
+        stated = Array.concatMap numbers (bundle.draft : bundle.facts <> b.markets)
         invented = filter (\n -> not (n `elem` stated)) (nub (numbers w.headline <> numbers w.summary))
       in
         catMaybes
           [ length' "headline" t.headline w.headline
           , length' "summary" t.summary w.summary
           ]
-          <> map (\n -> "slot " <> show w.slot <> " states " <> n <> ", which its facts do not") invented
+          <> map (\n -> "slot " <> show w.slot <> " states " <> n <> ", which neither its facts nor the markets do") invented
     where
     length' part r text =
       let
@@ -98,6 +100,17 @@ check b copy = missing <> extra <> twice <> Array.concatMap judged copy
       in
         if n < lo || n > hi then Just ("slot " <> show w.slot <> "'s " <> part <> " is " <> show n <> " words; write " <> show r.min <> " to " <> show r.max)
         else Nothing
+
+-- | A reply's stories that stand, and what was wrong with the rest. A story stands on its own: one with a wrong length
+-- | or an invented figure is dropped, and its slot keeps the page's own headline, while the others print. A slot
+-- | written twice keeps its first story; a story for no bundle is dropped.
+type Vetted = { copy :: Copy, dropped :: Array String }
+
+vet :: Brief -> Copy -> Vetted
+vet b copy = { copy: Array.filter stands firsts, dropped: check b copy }
+  where
+  firsts = Array.nubByEq (\x y -> x.slot == y.slot) (Array.filter (\w -> w.slot `elem` map _.slot b.bundles) copy)
+  stands w = null (check (b { bundles = Array.filter (\x -> x.slot == w.slot) b.bundles }) [ w ])
 
 -- | The page with its copy: a written story takes the writer's headline, and its summary in place of the facts.
 applyCopy :: Copy -> FrontPage -> FrontPage

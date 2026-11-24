@@ -23,7 +23,7 @@ import Prelude
 
 import Data.Either (Either)
 import Data.Maybe (Maybe)
-import Edition.Brief (Brief, Copy)
+import Edition.Brief (Brief, Copy, Vetted)
 import Edition.Issue (Issue)
 import Edition.Report (Live, Report)
 import Type.Proxy (Proxy(..))
@@ -63,9 +63,10 @@ type LOG r = (log :: LogF | r)
 _log :: Proxy "log"
 _log = Proxy
 
--- | A writer's pass over one front page: one model call, a headline and a summary for each story the brief bundles. Left
--- | is why no copy could be had (the call failed, or its reply does not stand).
-data WriteF a = Write Brief (Either String Copy -> a)
+-- | A writer's pass over one front page: one model call, a headline and a summary for each story the brief bundles,
+-- | vetted story by story (`Edition.Brief.vet`). Left is why no copy could be had (the call failed, its reply did not
+-- | decode, or no story in it stands).
+data WriteF a = Write Brief (Either String Vetted -> a)
 
 derive instance Functor WriteF
 

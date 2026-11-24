@@ -1,7 +1,7 @@
 -- | The `WRITE` interpreter: a writer's pass over one front page, as scenario-engine's joint pass is over a round's
--- | transcripts, but with exactly one call and no corrections, so a round costs one prompt. A reply that decodes and
--- | stands (`Edition.Brief.check`) is the copy; a call that fails, or a reply that does not stand, is a `Left` with the
--- | reason, and the paper keeps its own headlines.
+-- | transcripts, but with exactly one call and no corrections, so a round costs one prompt. A reply that decodes is
+-- | vetted story by story (`Edition.Brief.vet`): the stories that stand are the copy, and the rest keep the page's own
+-- | headlines. A call that fails, a reply that does not decode, or one in which no story stands is a `Left`.
 module Handlers.Llm.Write (writer, interpretWrite, decodeCopy, firstObject) where
 
 import Prelude
@@ -16,7 +16,7 @@ import Data.Either (Either(..))
 import Data.String (Pattern(..), joinWith, lastIndexOf, indexOf)
 import Data.String.CodeUnits (slice)
 import Data.Maybe (Maybe(..))
-import Edition.Brief (Brief, Copy, check)
+import Edition.Brief (Brief, Copy, Vetted, vet)
 import Effect.Aff (Aff)
 import Effects.Signatures (WriteF(..))
 import Handlers.Llm.Backend (Backend, send)
@@ -25,12 +25,12 @@ import Handlers.Llm.Prompt (writePrompt)
 interpretWrite :: Backend -> WriteF ~> Aff
 interpretWrite b (Write brief k) = k <$> writer b brief
 
-writer :: Backend -> Brief -> Aff (Either String Copy)
+writer :: Backend -> Brief -> Aff (Either String Vetted)
 writer b brief = send b writePrompt (stringify (encodeJson brief)) <#> \reply -> do
   text <- reply
   copy <- lmap ("the reply does not decode: " <> _) (decodeCopy text)
-  let wrong = check brief copy
-  if null wrong then Right copy else Left ("the reply does not stand: " <> joinWith "; " wrong)
+  let vetted = vet brief copy
+  if null vetted.copy then Left ("no story in the reply stands: " <> joinWith "; " vetted.dropped) else Right vetted
 
 -- | A reply's copy: the first JSON object in its text (a model may wrap it in a fence or a sentence), read as
 -- | `{"stories": [...]}`.

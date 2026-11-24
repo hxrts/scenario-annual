@@ -17,8 +17,10 @@ module Effects.Edition
 import Prelude
 
 import Data.Either (Either(..))
+import Data.Array (null)
 import Data.Maybe (Maybe(..))
-import Edition.Brief (Brief, Copy, brief)
+import Data.String (joinWith)
+import Edition.Brief (Brief, Copy, Vetted, brief)
 import Edition.FrontPage (frontPage)
 import Edition.Issue (Issue(..), sameRound)
 import Edition.Report (Live, Report, playedThrough)
@@ -38,7 +40,7 @@ current = lift _desk (Current identity)
 publish :: forall r. Issue -> Run (DESK + r) Unit
 publish issue = lift _desk (Publish issue unit)
 
-write :: forall r. Brief -> Run (WRITE + r) (Either String Copy)
+write :: forall r. Brief -> Run (WRITE + r) (Either String Vetted)
 write b = lift _write (Write b identity)
 
 recall :: forall r. String -> Run (ARCHIVE + r) (Maybe Entry)
@@ -104,8 +106,10 @@ copyFor run r = recall key >>= case _ of
       Left e -> do
         keep key (Failed e)
         Nothing <$ note ("no copy for " <> key <> ", printing the page's own headlines: " <> e)
-      Right copy -> do
-        keep key (Written copy)
-        pure (Just copy)
+      Right vetted -> do
+        keep key (Written vetted.copy)
+        unless (null vetted.dropped) do
+          note ("some stories of " <> key <> " keep the page's own headlines: " <> joinWith "; " vetted.dropped)
+        pure (Just vetted.copy)
   where
   key = run <> "/" <> show r.round
