@@ -150,7 +150,14 @@ footer page = D.footer
                   }
               , column "Sections" (map D.text sections)
               , column "Markets" (map D.text [ "World technology", "World industry", "US technology", "China industry", "US dollar in yuan" ])
-              , column "Edition" [ D.text (longDate date), D.text "Updated at market close" ]
+              , D.div
+                  { className: "footer-edition"
+                  , children:
+                      [ D.h2 { className: "footer-heading", children: [ D.text "Edition" ] }
+                      , D.p { className: "footer-date", children: [ D.text (longDate date) ] }
+                      , D.p { className: "footer-note", children: [ D.text "Updated at market close" ] }
+                      ]
+                  }
               ]
           }
       ]
