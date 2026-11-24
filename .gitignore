@@ -1,0 +1,14 @@
+output/
+.spago/
+node_modules/
+dist/
+.DS_Store
+.direnv/
+.env
+work/
+test-results/
+playwright-report/
+.claude/
+# fetched from the engine (`just contract`)
+/openapi/
+.spec-results

@@ -1,0 +1,15 @@
+{
+  "name": "scenario-annual",
+  "private": true,
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@vitejs/plugin-react": "^6.2.1",
+    "purescript": "0.15.16",
+    "purs-tidy": "0.11.1",
+    "react": "18.3",
+    "react-dom": "18.3",
+    "spago": "1.0.5",
+    "tailwindcss": "^4.3.5",
+    "vite": "^8.3.6"
+  }
+}

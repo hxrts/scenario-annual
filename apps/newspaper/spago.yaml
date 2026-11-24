@@ -1,0 +1,22 @@
+package:
+  name: sa-newspaper
+  dependencies:
+    - prelude
+    - aff
+    - datetime
+    - tailrec
+    - argonaut-codecs
+    - argonaut-core
+    - arrays
+    - either
+    - effect
+    - exceptions
+    - unsafe-coerce
+    - fetch
+    - maybe
+    - react-basic
+    - react-basic-dom
+    - react-basic-hooks
+    - web-dom
+    - web-html
+    - sa-edition

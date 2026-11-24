@@ -1,0 +1,19 @@
+package:
+  name: sa-edition
+  dependencies:
+    - prelude
+    - argonaut-codecs
+    - argonaut-core
+    - arrays
+    - either
+    - foldable-traversable
+    - maybe
+    - strings
+    - numbers
+  test:
+    main: Test.Main
+    dependencies:
+      - aff
+      - effect
+      - spec
+      - spec-node
